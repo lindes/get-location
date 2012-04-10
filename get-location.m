@@ -116,6 +116,21 @@ void defaultPrinter(CLLocation *loc)
     printf("Location: %s\n", [[loc description] UTF8String]);
 }
 
+void gmlPrinter(CLLocation *loc)
+{
+    printf("<gml:Point srsDimension=\"2\" srsName=\"http://www.opengis.net/def/crs/EPSG/0/4326\">\n"
+           "    <gml:pos>%.8f %.8f</gml:pos>\n"
+           "</gml:Point>\n",
+           loc.coordinate.latitude, loc.coordinate.longitude);
+}
+
+void jsonPrinter(CLLocation *loc)
+{
+    printf("{ \"type\": \"Point\", \"coordinates\": [ %.8f, %.8f ] }\n",
+           loc.coordinate.latitude,
+           loc.coordinate.longitude);
+}
+
 void _lispPrinter(CLLocation *loc, BOOL quote, BOOL comments)
 {
     char *quote1 = quote ? "\"" : "";
@@ -166,13 +181,6 @@ void plistPrinter(CLLocation *loc)
            -[loc.timestamp timeIntervalSinceNow]);
 }
 
-void jsonPrinter(CLLocation *loc)
-{
-    printf("{ \"type\": \"Point\", \"coordinates\": [ %.8f, %.8f ] }\n",
-           loc.coordinate.latitude,
-           loc.coordinate.longitude);
-}
-
 struct {
     char *name;
     locationPrinter printer;
@@ -180,12 +188,13 @@ struct {
 } formats[] = {
     { "default",      defaultPrinter,       "the result of calling description on the CLLocation object [default]"  },
     { "logging",      defaultLogger,        "as above, but use NSLog to report it [default with -l]" },
-    { "json",         jsonPrinter,          "print a json object, as per http://www.geojson.org/" },
-    { "lisp",         lispPrinter,          "print as a lisp S-expression (suitable for (read))" },
+    { "gml",          gmlPrinter,           "GML - http://en.wikipedia.org/wiki/Geography_Markup_Language" },
+    { "json",         jsonPrinter,          "a JSON object, as per http://www.geojson.org/" },
+    { "lisp",         lispPrinter,          "a lisp S-expression (suitable for (read))" },
     { "quoted-lisp",  lispPrinter_quoted,   "as lisp, but quote it (suitable for (read-from-string ...))" },
     { "commented-lisp",
-                      lispPrinter_commented,"as lisp, but with newlines and comments" },
-    { "lisp-plist",   plistPrinter,         "a lisp properties list, suitable for (read)" }
+                      lispPrinter_commented,"as lisp, but with newlines and comments (read)" },
+    { "lisp-plist",   plistPrinter,         "a lisp properties list, suitable for (read)" },
 };
 
 #define FORMAT_COUNT (sizeof(formats) / sizeof(*formats))
