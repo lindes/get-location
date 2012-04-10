@@ -1,15 +1,23 @@
+// get-location.m -- simple command-line interface to CoreLocation framework in MacOS
+
+// Copyright 2012 by David Lindes.  All rights reserved.
+// Distributed under the MIT license.  See LICENSE.txt for details.
+
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
 
-///// Delegate interface
+///// Delegate interface for CoreLocation to talk to:
 @interface MyLocationFinder : NSObject <CLLocationManagerDelegate> {
     CLLocationManager *locationManager;
     CLLocation *foundLocation;
-    BOOL logging;
+    NSInteger logging; // used as a boolean
+    NSInteger hitsRequired; // how many results do we need before advertising them?
 }
 
 @property (nonatomic, retain) CLLocationManager *locationManager;
 @property (nonatomic, retain) CLLocation *foundLocation;
+@property (assign) NSInteger logging;
+@property (assign) NSInteger hitsRequired;
 
 - (void)locationManager:(CLLocationManager *)manager
     didUpdateToLocation:(CLLocation *)newLocation
@@ -18,24 +26,26 @@
 - (void)locationManager:(CLLocationManager *)manager
        didFailWithError:(NSError *)error;
 
-- (CLLocation *)found;
-- (CLLocation *)latestOnly;
+- (CLLocation *)found;       // location that we've gotten
+- (CLLocation *)latestOnly;  // returns location, then clears it
+                             // (thus, one can check for updates)
 
 @end
 
-///// Delegate implementation
+///// Delegate implementation:
 
 @implementation MyLocationFinder
 
 @synthesize locationManager;
 @synthesize foundLocation;
+@synthesize logging, hitsRequired;
 
 - (id) init {
     self = [super init];
     if(self)
     {
         self.foundLocation = nil;
-        logging = NO; // TODO: make this configurable
+        self.logging = NO;
 
         self.locationManager = [[[CLLocationManager alloc] init] autorelease];
         self.locationManager.delegate = self;
@@ -64,10 +74,11 @@
 {
     static int hits = 0;
 
-    if(logging)
+    if(self.logging)
         NSLog(@"Now at %@ (was %@)", [newLocation description], [oldLocation description]);
 
-    if(++hits > 1) // don't store the first hit, as it may be stale
+    // don't necessarily store the first hit, as it may be stale.
+    if(++hits > self.hitsRequired)
         // FIXME: make this configurable
     {
         self.foundLocation = [newLocation retain];
@@ -95,6 +106,7 @@ int main(int argc, char *argv[])
 {
     int i;
     BOOL logging = NO, verbose = NO, debug = NO; // TODO: make configurable, and probably handle differently
+    NSInteger hitsRequired = 1; // TODO: make configurable
 
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSRunLoop *runLoop = [NSRunLoop mainRunLoop];
@@ -110,6 +122,8 @@ int main(int argc, char *argv[])
         NSLog(@"Initiating location search...");
 
     finder = [[MyLocationFinder alloc] init];
+    finder.logging = logging;
+    finder.hitsRequired = hitsRequired;
 
     for(i = 0; i < 30; ++i)
     {
@@ -122,9 +136,9 @@ int main(int argc, char *argv[])
         if((loc = [finder latestOnly]))
         {
             if(logging)
-                NSLog(@"Final location: %@", [loc description]);
+                NSLog(@"Location: %@", [loc description]);
             else
-                printf("Final location: %s\n", [[loc description] UTF8String]);
+                printf("Location: %s\n", [[loc description] UTF8String]);
 
             [pool drain];
             return(0);
