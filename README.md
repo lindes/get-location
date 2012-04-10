@@ -24,12 +24,15 @@ Hopefully, just type `make`.
 It would be good if this tool had configuration for such things as:
 
 * amount of accuracy required
-* whether or not to wait for a non-cached result
-* choosing (or even specifying) different output formats
 
 If you'd like to help make any of these happen, feel free to fork the
 github repo for this, and/or send me money to encourage my further
 development.  :)
+
+## Past wish-list, now completed!
+
+* whether or not to wait for a non-cached result (added 2012-04-10) -- `-r <results>`
+* choosing (or even specifying) different output formats -- `-f <format>`
 
 ## Author:
 
