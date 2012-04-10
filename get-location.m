@@ -100,6 +100,20 @@
 
 @end
 
+//// outputter functions
+
+typedef void (*locationPrinter)(CLLocation *);
+
+void defaultLogger(CLLocation *loc)
+{
+    NSLog(@"Location: %@", [loc description]);
+}
+
+void defaultPrinter(CLLocation *loc)
+{
+    printf("Location: %s\n", [[loc description] UTF8String]);
+}
+
 ///// main loop
 
 int main(int argc, char *argv[])
@@ -111,6 +125,11 @@ int main(int argc, char *argv[])
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSRunLoop *runLoop = [NSRunLoop mainRunLoop];
     MyLocationFinder *finder;
+
+    locationPrinter printer = defaultPrinter;
+
+    if(logging)
+        printer = defaultLogger;
 
     if(![CLLocationManager locationServicesEnabled])
     {
@@ -135,10 +154,7 @@ int main(int argc, char *argv[])
         [runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:10]];
         if((loc = [finder latestOnly]))
         {
-            if(logging)
-                NSLog(@"Location: %@", [loc description]);
-            else
-                printf("Location: %s\n", [[loc description] UTF8String]);
+            (*printer)(loc);
 
             [pool drain];
             return(0);
