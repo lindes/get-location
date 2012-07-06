@@ -127,8 +127,8 @@ void gmlPrinter(CLLocation *loc)
 void jsonPrinter(CLLocation *loc)
 {
     printf("{ \"type\": \"Point\", \"coordinates\": [ %.8f, %.8f ] }\n",
-           loc.coordinate.latitude,
-           loc.coordinate.longitude);
+           loc.coordinate.longitude,
+           loc.coordinate.latitude);
 }
 
 void _lispPrinter(CLLocation *loc, BOOL quote, BOOL comments)
